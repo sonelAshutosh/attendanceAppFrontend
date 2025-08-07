@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   Sheet,
   SheetContent,
@@ -12,30 +12,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
 import Link from 'next/link'
-import API from '@/axios'
+import { useUser } from '@/context/userContext'
 
 function Navbar({ open, setOpen }) {
-  const [studentName, setStudentName] = useState('')
-
-  useEffect(() => {
-    const getStudentName = async () => {
-      const cookieMatch = document.cookie.match(/userId=([^;]+)/)
-      const userId = cookieMatch?.[1]
-
-      if (userId) {
-        try {
-          const res = await API.get(`/api/users/${userId}`)
-          const user = res.data.name.split(' ')[0]
-          setStudentName(user || 'Student')
-        } catch (error) {
-          console.error('Failed to fetch user', error)
-          setStudentName('Student')
-        }
-      }
-    }
-
-    getStudentName()
-  }, [])
+  const user = useUser()
+  const studentName = user?.name?.split(' ')[0] || ''
 
   return (
     <>
@@ -43,7 +24,7 @@ function Navbar({ open, setOpen }) {
         {/* Left menu button */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="border-2">
               <Menu className="w-6 h-6" />
             </Button>
           </SheetTrigger>
@@ -59,19 +40,31 @@ function Navbar({ open, setOpen }) {
               <p className="font-semibold text-lg">Navigation</p>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/" className="hover:underline">
-                    Home
-                  </Link>
-                </li>
-                <li>
                   <Link href="/profile" className="hover:underline">
                     Profile
                   </Link>
                 </li>
                 <li>
-                  <Link href="/logout" className="hover:underline text-red-500">
-                    Logout
+                  <Link href="/" className="hover:underline">
+                    Home
                   </Link>
+                </li>
+
+                <li>
+                  <Button
+                    onClick={() => {
+                      // Delete cookies by setting them with past expiry
+                      document.cookie = 'accessToken=; Max-Age=0; path=/'
+                      document.cookie = 'userId=; Max-Age=0; path=/'
+
+                      // Redirect to logout page (or homepage)
+                      window.location.href = '/'
+                    }}
+                    variant="destructive"
+                    className="hover:underline hover:cursor-pointer"
+                  >
+                    Logout
+                  </Button>
                 </li>
               </ul>
             </div>
