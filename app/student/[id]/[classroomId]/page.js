@@ -1,30 +1,17 @@
 import API from '@/axios'
+import ClassroomPage from './ClassroomPage'
 
-export default async function ClassroomPage({ params }) {
-  const { classroomId } = await params
+export default async function Page({ params }) {
+  const { classroomId } = params
   const classroom = await getClassroom(classroomId)
 
-  if (!classroom) {
-    return <>Loading...</>
-  }
-
-  return (
-    <div>
-      <h1 className="text-xl font-bold">{classroom.name}</h1>
-      <p>Instructor: {classroom.createdBy.name}</p>
-      <p>Code: {classroom.code}</p>
-    </div>
-  )
+  return <ClassroomPage classroom={classroom} />
 }
 
 async function getClassroom(classroomId) {
   const res = await API.get(`/api/classrooms/class/${classroomId}`, {
     cache: 'no-store',
   })
-
-  if (res.status === 200) {
-    return res.data
-  }
-
+  if (res.status === 200) return res.data
   return null
 }
