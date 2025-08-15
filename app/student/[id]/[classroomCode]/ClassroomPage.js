@@ -22,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useUser } from '@/context/userContext'
 import { format } from 'date-fns'
+import MarkedAttendanceList from './MarkedAttendanceList'
 
 export default function ClassroomPage({ classroom }) {
   const user = useUser()
@@ -80,21 +81,7 @@ export default function ClassroomPage({ classroom }) {
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            Classroom Info
-          </CardTitle>
-          <CardDescription>
-            Additional details about the classroom.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Created On: {format(new Date(classroom.createdAt), 'dd-MM-yyyy')}
-          </p>
-        </CardContent>
-      </Card>
+      <MarkedAttendanceList classroom={classroom} />
     </div>
   )
 }

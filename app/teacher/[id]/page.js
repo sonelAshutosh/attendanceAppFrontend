@@ -16,8 +16,6 @@ export default async function TeacherPage({ params }) {
   const { id } = await params
   const classrooms = await getTeacherClassrooms(id)
 
-  console.log('Teacher Page', classrooms)
-
   if (!classrooms) {
     return <p>Loading Teacher Classrooms...</p>
   }

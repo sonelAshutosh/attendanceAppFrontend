@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Card,
@@ -22,6 +22,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { useUser } from '@/context/userContext'
 import { format } from 'date-fns'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 export default function ClassroomDetails({ classroom }) {
   const user = useUser()
@@ -29,6 +31,8 @@ export default function ClassroomDetails({ classroom }) {
   const [sessionCode, setSessionCode] = useState('')
   const [expireTime, setExpireTime] = useState('')
   const router = useRouter()
+
+  const [sessions, setSessions] = useState([])
 
   // Generate 5-digit numeric code
   const generateSessionCode = () => {
@@ -48,7 +52,7 @@ export default function ClassroomDetails({ classroom }) {
     const res = await API.post(`/api/attendance/session`, {
       classroomId: classroom._id,
       code: sessionCode,
-      qrToken: `${sessionCode}-${expireDate}-${hours}-${minutes}`,
+      qrToken: `${sessionCode}-${expireDate}`,
       expiresAt: expireDate.toISOString(),
     })
 
@@ -58,6 +62,19 @@ export default function ClassroomDetails({ classroom }) {
       setExpireTime('')
     }
   }
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const res = await API.get(`/api/attendance/session/${classroom._id}`)
+        setSessions(res.data)
+      } catch (error) {
+        console.error('Error fetching sessions:', error)
+      }
+    }
+
+    fetchSessions()
+  }, [classroom._id])
 
   return (
     <div className="max-w-md mx-auto">
@@ -136,7 +153,7 @@ export default function ClassroomDetails({ classroom }) {
         </DialogContent>
       </Dialog>
 
-      <Card>
+      <Card className="mt-6 border shadow-sm border-border/50">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">
             Classroom Info
@@ -149,6 +166,53 @@ export default function ClassroomDetails({ classroom }) {
           <p className="text-sm text-muted-foreground">
             Created On: {format(new Date(classroom.createdAt), 'dd-MM-yyyy')}
           </p>
+
+          {sessions.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {sessions.map((session) => (
+                <Link
+                  key={session._id}
+                  href={`/teacher/${user?.id}/${classroom.code}/${session.sessionCode}`}
+                  className="transition-shadow duration-200 hover:shadow-lg"
+                >
+                  <Card className="transition-all ease-in-out border shadow-sm border-border/50 bg-muted/50 hover:scale-105">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base font-semibold">
+                          {format(
+                            new Date(session.createdAt),
+                            'dd-MM-yyyy HH:mm'
+                          )}
+                        </CardTitle>
+                        <Badge
+                          variant={session.isActive ? 'default' : 'secondary'}
+                        >
+                          {session.isActive ? 'Active' : 'Expired'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <p className="text-sm">
+                        <span className="font-medium">Code:</span>{' '}
+                        <span className="font-mono">{session.sessionCode}</span>
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Expires at:</span>{' '}
+                        {format(
+                          new Date(session.expiresAt),
+                          'dd-MM-yyyy HH:mm'
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm italic text-muted-foreground">
+              No sessions created yet.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
