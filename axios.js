@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 const API = axios.create({
-  baseURL: 'http://10.22.24.49:5000/',
-  //   baseURL: '',
+  // baseURL: 'http://localhost:5000/',
+  baseURL: 'https://attendance-app-backend-theta.vercel.app/',
 })
 
 export default API
